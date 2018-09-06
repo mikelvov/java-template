@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class IntSort {
   public static void sort (int array[]) {
-    Arrays.sort(array);
+
   }
 
   public static void sort (List<Integer> list) {
