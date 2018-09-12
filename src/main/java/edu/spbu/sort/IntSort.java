@@ -9,26 +9,34 @@ import java.util.List;
  */
 public class IntSort {
   public static void sort1 (int array[],int l, int r) {
-    if (l + 1 < r) {
-      int mid = (l + r)/2;
-     sort1(array, l, mid);
-     sort1(array, mid, r);
+    if (l < r) {
+      int mid = (l + r) / 2;
+      sort1(array, l, mid);
+      sort1(array, mid + 1, r);
 
-      int size = r - l;
-      int[] b = new int[size];
+      int[] b = Arrays.copyOf(array, array.length);
+      for (int k = l; k <= r; k++)
+        b[k] = array[k];
+
       int i = l;
       int j = mid;
-      for (int n = 0; n < size; n++) {
-        if (j >= r || i < mid && array[i] < array[j]) {
-          b[n] = array[i++];
+      for (int n = l; n <= r; n++) {
+        if (i > mid) {
+          array[n] = b[j];
+          j++;
+        } else if (j > r) {
+          array[n] = b[i];
+          i++;
+        } else if (b[j] < b[i]) {
+          array[n] = b[j];
+          j++;
         } else {
-          b[n] = array[j++];
+          array[n] = b[i];
+          i++;
         }
       }
-      System.arraycopy(b, 0, array, l, size);
     }
   }
-
   public static void sort (List<Integer> list) {
     Collections.sort(list);
   }

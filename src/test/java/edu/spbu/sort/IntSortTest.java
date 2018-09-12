@@ -35,7 +35,7 @@ public class IntSortTest
   public void testSortArray() throws Exception {
     int array[] = generateRandomIntArray(ARRAY_SIZE, SEED);
 
-    IntSort.sort(array);
+    IntSort.sort1(array,0,array.length);
 
     // проверяем правильность сортировки
     int previousValue = Integer.MIN_VALUE;
