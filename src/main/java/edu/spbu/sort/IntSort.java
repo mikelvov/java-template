@@ -8,36 +8,29 @@ import java.util.List;
  * Created by artemaliev on 07/09/15.
  */
 public class IntSort {
-  public static void sort1 (int array[],int l, int r) {
-    if (l < r) {
-      int mid = (l + r) / 2;
-      sort1(array, l, mid);
-      sort1(array, mid + 1, r);
+  public static void mergeSort(int[] a, int low, int high) {
+    if (low + 1 < high) {
+      int mid = (low + high)/2;
+      mergeSort(a, low, mid);
+      mergeSort(a, mid, high);
 
-      int[] b = Arrays.copyOf(array, array.length);
-      for (int k = l; k <= r; k++)
-        b[k] = array[k];
-
-      int i = l;
+      int size = high - low;
+      int[] b = new int[size];
+      int i = low;
       int j = mid;
-      for (int n = l; n <= r; n++) {
-        if (i > mid) {
-          array[n] = b[j];
-          j++;
-        } else if (j > r) {
-          array[n] = b[i];
-          i++;
-        } else if (b[j] < b[i]) {
-          array[n] = b[j];
-          j++;
+      for (int k = 0; k < size; k++) {
+        if (j >= high || i < mid && a[i] < a[j]) {
+          b[k] = a[i++];
         } else {
-          array[n] = b[i];
-          i++;
+          b[k] = a[j++];
         }
       }
+      System.arraycopy(b, 0, a, low, size);
     }
+
   }
-  public static void sort (List<Integer> list) {
+  public static void sort (List<Integer> list)
+  {
     Collections.sort(list);
   }
 }
