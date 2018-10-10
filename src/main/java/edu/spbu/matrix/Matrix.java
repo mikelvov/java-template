@@ -1,8 +1,10 @@
 package edu.spbu.matrix;
+import java.io.IOException;
 
 /**
  *
  */
+
 public interface Matrix
 {
   /**
@@ -11,13 +13,14 @@ public interface Matrix
    * @param o
    * @return
    */
-  Matrix mul(Matrix o);
-
+  Matrix mul(Matrix o) throws IOException;
   /**
    * многопоточное умножение матриц
    * @param o
    * @return
    */
   Matrix dmul(Matrix o);
+  boolean equals(Object o);
+
 
 }

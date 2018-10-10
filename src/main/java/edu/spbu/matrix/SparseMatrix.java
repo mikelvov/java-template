@@ -5,13 +5,14 @@ package edu.spbu.matrix;
  */
 public class SparseMatrix implements Matrix
 {
-  /**
-   * загружает матрицу из файла
-   * @param fileName
-   */
-  public SparseMatrix(String fileName) {
 
-  }
+  public int r ;
+  public int c ;
+  public double[][] sMatrix;  /* массив матрицы */
+
+
+
+
   /**
    * однопоточное умнджение матриц
    * должно поддерживаться для всех 4-х вариантов
@@ -30,6 +31,7 @@ public class SparseMatrix implements Matrix
    * @param o
    * @return
    */
+
   @Override public Matrix dmul(Matrix o)
   {
     return null;
@@ -44,3 +46,6 @@ public class SparseMatrix implements Matrix
     return false;
   }
 }
+
+
+
