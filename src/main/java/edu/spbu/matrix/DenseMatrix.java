@@ -1,9 +1,10 @@
 package edu.spbu.matrix;
-import java.io.*;
+import java.util.HashMap;
+import java.io.File;
 import java.util.Scanner;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.io.File;
+
 
 /**
  * Плотная матрица
@@ -11,7 +12,7 @@ import java.io.File;
 public class DenseMatrix implements Matrix {
   public int r = 0;
   public int c = 0;
-  public double[][] dMatrix;
+  public double[][] MainMatrix;
 
 
   public DenseMatrix(String fileName)   //матрица по файлу
@@ -52,7 +53,7 @@ public class DenseMatrix implements Matrix {
           result[i][j] = a.get(i)[j];                         // в цикле записываем в матрицу-результат i-j элемент из списочно-расш массива
         }
       }
-      dMatrix = result;
+      MainMatrix = result;
       this.r = result.length;
       this.c = result[0].length;
     } catch (IOException e) {
@@ -64,7 +65,7 @@ public class DenseMatrix implements Matrix {
 
   public DenseMatrix(double[][] matr)      //матрица по экземпляру
   {
-    this.dMatrix = matr;
+    this.MainMatrix = matr;
     this.r = matr.length;
     this.c = matr[0].length;
   }
@@ -97,12 +98,32 @@ public class DenseMatrix implements Matrix {
     for (int i = 0; i < m; i++) {
       for (int j = 0; j < n; j++) {
         for (int k = 0; k < p; k++) {
-          res[i][j] += dMatrix[i][k] * dM.dMatrix[k][j];
+          res[i][j] += MainMatrix[i][k] * dM.MainMatrix[k][j];
         }
       }
     }
     return new DenseMatrix(res);
   }
+
+  private DenseMatrix mul(SparseMatrix Smatr) //умножение на sparse
+  {
+    SparseMatrix sT = Smatr.transpose();
+    double[][] result = new double[r][Smatr.c];
+    double sum = 0;
+    for (int i = 0; i<r; i++){
+      for (HashMap.Entry<Integer, HashMap<Integer, Double>> row2 : sT.MainMatrix.entrySet()) {
+        for (int k = 0; k<c; k++) {
+          if (row2.getValue().containsKey(k)) {
+            sum += MainMatrix[i][k]*row2.getValue().get(k);
+          }
+        }
+        result[i][row2.getKey()] = sum;
+        sum = 0;
+      }
+    }
+    return new DenseMatrix(result);
+  }
+
 
   /**
    * многопоточное умножение матриц
@@ -130,7 +151,7 @@ public class DenseMatrix implements Matrix {
       if ((r == O.r) && (c == O.c)) {
         for (i = 0; i < r; ++i)
           for (j = 0; j < c; ++j)
-            if (dMatrix[i][j] != O.dMatrix[i][j]){
+            if (MainMatrix[i][j] != O.MainMatrix[i][j]){
               return false;
             }
       }
