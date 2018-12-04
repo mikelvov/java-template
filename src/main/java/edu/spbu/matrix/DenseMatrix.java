@@ -1,4 +1,5 @@
 package edu.spbu.matrix;
+import java.awt.*;
 import java.util.HashMap;
 import java.io.File;
 import java.util.Scanner;
@@ -9,6 +10,34 @@ import java.util.ArrayList;
 /**
  * Плотная матрица
  */
+class Invest implements Runnable
+{
+  private int str1, str2;                                           //с какой строки умножать и до какой
+  private DenseMatrix a, b, res;                                    // 3 матрицы
+  Invest(int k, int l, DenseMatrix i, DenseMatrix j, DenseMatrix c){
+    res = c;
+    str1 = k;
+    str2 = l;
+    a = i;
+    b = j;
+  }
+  @Override
+  public void run() {                       //то что должен делать поток : делим первую матрицу на строки, умножаем на все столбцы второй и слепляем
+    for (int i = str1; i < str1 + str2; i++){         //со строки стр1 до стр2
+      if (i < a.r)                                    //если не вылезли за границы матрицы
+      {
+        for (int j = 0; j < res.c; j++) {
+          for (int k = 0; k < a.c; k++) {
+            res.MainMatrix[i][j] += (a.MainMatrix[i][k] * b.MainMatrix[j][k]);
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
 public class DenseMatrix implements Matrix {
   public int r = 0;
   public int c = 0;
@@ -36,7 +65,8 @@ public class DenseMatrix implements Matrix {
       else return;
 
       while (input.hasNextLine()) {                           // пока есть строки в файл
-        //на каждом шаге есть очередная строка (line), которую преобразуем к массиву из чисел (tmp), а потом зная их итоговые размеры собираеи всё в двумерный массив (rezult), который приравнивается к итоговому значению матрицы
+        //на каждом шаге есть очередная строка (line), которую преобразуем к массиву из чисел (tmp), а потом
+        // зная их итоговые размеры собираеи всё в двумерный массив (rezult), который приравнивается к итоговому значению матрицы
         line = input.nextLine().split(" ");             // считали из файла строку с пробелом в line
         if (line.length == k) {
           tmp = new Double[line.length];                        // tmp - массив размеры длины line
@@ -70,6 +100,11 @@ public class DenseMatrix implements Matrix {
     this.c = matr[0].length;
   }
 
+  public DenseMatrix(int length, int hight){
+    this.c = length;
+    this.r = hight;
+    MainMatrix = new double[hight][length];
+  }
   /**
    * однопоточное умножение матриц
    * должно поддерживаться для всех 4-х вариантов
@@ -105,23 +140,30 @@ public class DenseMatrix implements Matrix {
     return new DenseMatrix(res);
   }
 
-  private DenseMatrix mul(SparseMatrix Smatr) //умножение на sparse
+  private SparseMatrix mul(SparseMatrix Smatr) //умножение на sparse
   {
-    SparseMatrix sT = Smatr.transpose();
-    double[][] result = new double[r][Smatr.c];
-    double sum = 0;
-    for (int i = 0; i<r; i++){
-      for (HashMap.Entry<Integer, HashMap<Integer, Double>> row2 : sT.MainMatrix.entrySet()) {
-        for (int k = 0; k<c; k++) {
-          if (row2.getValue().containsKey(k)) {
-            sum += MainMatrix[i][k]*row2.getValue().get(k);
-          }
+    if (c != ((SparseMatrix) Smatr).hight) {
+      return (null);
+    }
+    SparseMatrix res = new SparseMatrix(r, ((SparseMatrix) Smatr).length);
+    DenseMatrix trans = this.transp();                                            //транспонируем и умножаем как SD
+    for (Point key : ((SparseMatrix) Smatr).sMatrix.keySet()) {
+      for (int i = 0; i < ((SparseMatrix) Smatr).length; i++){
+        Point q = new Point(i, key.y);
+        if (res.sMatrix.containsKey(q))
+        {
+          double t = res.sMatrix.get(q) + ((SparseMatrix) Smatr).sMatrix.get(key)*trans.MainMatrix[key.x][i];
+          res.sMatrix.put(q, t);
+        } else {
+          double t = ((SparseMatrix) Smatr).sMatrix.get(key)*trans.MainMatrix[key.x][i];
+          res.sMatrix.put(q, t);
         }
-        result[i][row2.getKey()] = sum;
-        sum = 0;
       }
     }
-    return new DenseMatrix(result);
+    res.sMatrix.entrySet().removeIf(entry -> Math.abs(entry.getValue()) < 1.0E-06);
+    return res;
+
+
   }
 
 
@@ -131,10 +173,34 @@ public class DenseMatrix implements Matrix {
    * @param o
    * @return
    */
-  @Override
-  public Matrix dmul(Matrix o) {
+  @Override public Matrix dmul(Matrix o)
+  {
+    if (o instanceof DenseMatrix) {
+      if (this.r != ((DenseMatrix) o).c) {
+        return (null);
+      }
+      DenseMatrix res = new DenseMatrix(this.r, ((DenseMatrix) o).c);
+      DenseMatrix trans = ((DenseMatrix) o).transp();               //
+      ArrayList<Thread> t = new ArrayList<>();                      //массив всех потоков
+      int str2 = this.r/4 + 1;                                        //сколько строк обратывать одному потоку
+      for (int i = 0; i < res.r; i+=str2) {                           //считаем с каокой строки начанить умножать
+        Invest act = new Invest(i, str2, this, trans, res);        //создаем act типа invest
+        Thread temp = new Thread(act);                              //создаем поток с функцией акт
+        t.add(temp);                                                //добавляем новый поток к листу всех потоков
+        temp.start();                                               //запуск потока
+      }
+      for (Thread p: t) {                                           //пробегаем по всему лисут и ждем пока все закончатся
+        try {
+          p.join();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+      return (res);
+    }
     return null;
   }
+
 
   /**
    * спавнивает с обоими вариантами
@@ -159,6 +225,14 @@ public class DenseMatrix implements Matrix {
     }
     else return false;
   }
-
+  private DenseMatrix transp(){
+    DenseMatrix res = new DenseMatrix(r,c);
+    for (int i = 0; i <c; i++){
+      for (int j = 0; j < r; j++){
+        res.MainMatrix[i][j] = MainMatrix[j][i];
+      }
+    }
+    return (res);
+  }
 
 }

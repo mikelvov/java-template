@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html>
+<body>
+<p style=\"color:red;\">Hello</p>
+<p style=\"color:blue;\">World</p>
+</body>
+</html>
+

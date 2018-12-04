@@ -39,6 +39,22 @@ public class MatrixTest
     assertEquals(expected, m1.mul(m2));
   }
 
+  @Test
+  public void dmulDD() throws IOException {
+    Matrix m1 = new DenseMatrix("m1.txt");
+    Matrix m2 = new DenseMatrix("m2.txt");
+    Matrix expected = new DenseMatrix("resultm1m2.txt");
+    assertEquals(expected, m1.mul(m2));
+  }
+  @Test
+  public void dmulSS() throws IOException {
+    Matrix m1 = new SparseMatrix("m1.txt");
+    Matrix m2 = new SparseMatrix("m2.txt");
+    Matrix expected = new SparseMatrix("resultm1m2.txt");
+    assertEquals(expected, m1.mul(m2));
+  }
+
+
 
 
 }
